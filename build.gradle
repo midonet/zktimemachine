@@ -1,0 +1,61 @@
+/*
+ * Copyright 2015 Midokura SARL
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// Apply the java plugin to add support for Java
+apply plugin: 'java'
+apply plugin: 'scala'
+apply plugin: 'application'
+
+// In this section you declare where to find the dependencies of your project
+repositories {
+    // Use 'jcenter' for resolving your dependencies.
+    // You can declare any Maven/Ivy/file repository here.
+    jcenter()
+
+}
+
+// In this section you declare the dependencies for your production and test code
+dependencies {
+    compile 'org.apache.zookeeper:zookeeper:3.4.5'
+    compile 'org.scala-lang:scala-library:2.11.1'
+    compile 'joda-time:joda-time:2.7'
+    compile 'org.rogach:scallop_2.11:0.9.5'
+}
+
+run {
+    mainClassName = "org.apache.zookeeper.server.TimeMachine"
+    if (project.hasProperty("args")) {
+        args = project.args.split().toList()
+    }
+}
+
+task runGrep(type: JavaExec) {
+    classpath sourceSets.main.runtimeClasspath
+    main = "org.apache.zookeeper.server.GrepOps"
+    if (project.hasProperty("args")) {
+        args = project.args.split().toList()
+    }
+}
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'ZooKeeper Time Machine',  
+                   'Implementation-Version': '1.0',
+                   'Main-Class': 'org.apache.zookeeper.server.GrepOps'
+    }
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+}
+
