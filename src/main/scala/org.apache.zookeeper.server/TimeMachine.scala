@@ -123,6 +123,8 @@ object TimeMachine {
             val logDir = opt[String]("zk-txn-log-dir",
                                      descr = "ZooKeeper transaction log directory",
                                      default = snapshotDir.get)
+            val nolog = opt[Boolean]("nolog", noshort = true,
+                                     descr = "Don't look at logs")
             val help = opt[Boolean]("help", noshort = true,
                                     descr = "Show this message")
         }
@@ -135,8 +137,12 @@ object TimeMachine {
         val logDir = new File(opts.logDir.get.get)
         val snapDir = new File(opts.snapshotDir.get.get)
 
-        val snapFile = lastSnapshotBeforeTimestamp(
-            snapDir, logDir, queryTime.getMillis)
+        val snapFile = if (opts.nolog.get.get) {
+            lastSnapshotBeforeZxid(snapDir, Long.MaxValue)
+        } else {
+            lastSnapshotBeforeTimestamp(
+                snapDir, logDir, queryTime.getMillis)
+        }
         if (!snapFile.isDefined) {
             println(s"No snapshot found before ${queryTime}")
             System.exit(1)
