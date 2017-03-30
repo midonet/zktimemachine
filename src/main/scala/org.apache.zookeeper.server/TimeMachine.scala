@@ -192,18 +192,13 @@ object TimeMachine {
         val endDate = new Date(endTime)
         println(s"Applied ${i} transactions from zxid ${zxid} (${startDate}) to ${lastzxid} (${endDate})")
 
-        printZnode(dataTree, "/", 0, endTime)
+        printZnode(dataTree, "/", endTime)
     }
 
-    def printZnode(dataTree: DataTree, name: String, depth: Int, endTime: Long) {
-        //println("----")
+    def printZnode(dataTree: DataTree, name: String, endTime: Long) {
         val n = dataTree.getNode(name)
         val children = n.getChildren()
         val numChildren = if (children != null) children.size() else 0
-        var prefix = ""
-        for (i <- 0 until depth) {
-            prefix = prefix + "\t"
-        }
         var data = 0;
         if (n.data != null) {
             data = n.data.length
@@ -211,14 +206,14 @@ object TimeMachine {
         val largenode = if (numChildren > 100) "LARGENODE" else ""
         val owner = n.stat.getEphemeralOwner
         val age = endTime - n.stat.getCtime()
-        val creationTime = new Date(n.stat.getCtime())
-        println(s"${prefix}- ${name} data:${data} children:${numChildren} createdBy:${owner} createdAt:${creationTime} age:${age} ${largenode} ")
+        val creationTime = n.stat.getCtime()
+        println(s"${name} data:${data} children:${numChildren} createdBy:${owner} createdAt:${timeFormatter.print(creationTime)} age:${age} ${largenode} ")
         if (children != null) {
             for (child <- children.asScala) {
                 printZnode(dataTree,
                            name + (if (name.equals("/")) ""
                                    else "/") + child,
-                           depth + 1, endTime);
+                           endTime);
             }
         }
     }
